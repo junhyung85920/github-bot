@@ -37,15 +37,14 @@ app.post('/webhook', async (req, res) => {
 async function analyzeAndComment(pr) {
   const owner = junhyung85920;
   const repo = Dynamic_MoE;
-  const pull_number = 2;
 
   // 변경된 파일 목록 가져오기
   const { data: files } = await octokit.pulls.listFiles({
     owner,
     repo,
-    pull_number,
+    pull_number : pr.number
   });
-  console.log(`PR #${pull_number}의 변경된 파일 목록:`, files);
+  console.log(`PR #${pr.number}의 변경된 파일 목록:`, files);
   // 간단한 분석 예시: 변경된 파일 개수
   const analysisComment = `이번 PR에서는 총 ${files.length}개의 파일이 변경되었습니다.`;
 
@@ -53,7 +52,7 @@ async function analyzeAndComment(pr) {
   await octokit.issues.createComment({
     owner,
     repo,
-    issue_number: pull_number,
+    issue_number: pr.number,
     body: analysisComment,
   });
 
