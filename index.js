@@ -83,7 +83,7 @@ async function analyzeWithGemini(files) {
         .filter(Boolean)
         .join("\n\n");
 
-    if (!patches) {
+    if (!codeDiff) {
         return "변경된 코드에 분석할 내용이 없습니다.";
     }
 
