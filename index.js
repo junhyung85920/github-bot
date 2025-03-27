@@ -106,7 +106,6 @@ async function analyzeWithGemini(files) {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${process.env.GEMINI_KEY}` // GEMINI_API_KEY 환경변수 설정 필요
         },
         body: JSON.stringify({ text: prompt })
     });
