@@ -46,9 +46,18 @@ async function analyzeAndComment(pr) {
         repo : pr.base.repo.name,
         pull_number : pr.number
     });
-    console.log(`PR #${pr.number}의 변경된 파일 목록:`, files.name);
-    // 간단한 분석 예시: 변경된 파일 개수
-    const analysisComment = `이번 PR에서는 총 ${files.length}개의 파일이 변경되었습니다.`;
+
+    // Gemini API를 통해 코드 분석 수행
+    let geminiAnalysis;
+    try {
+        geminiAnalysis = await analyzeWithGemini(files);
+        console.log('Gemini 분석 결과:', geminiAnalysis);
+    } catch (err) {
+        console.error('Gemini 분석 에러:', err);
+        geminiAnalysis = "Gemini 분석에 실패하였습니다.";
+    }
+
+    const analysisComment = `## 코드 분석 결과\n\n${geminiAnalysis}`;
 
     // PR에 코멘트 달기
     await octokit.issues.createComment({
@@ -65,3 +74,48 @@ async function analyzeAndComment(pr) {
 app.listen(port, () => {
   console.log(`서버가 포트 ${port}에서 실행 중입니다.`);
 });
+
+// Gemini API를 호출하여 코드 분석을 수행하는 함수
+async function analyzeWithGemini(files) {
+    // 각 파일의 patch(변경된 diff) 정보를 결합하여 분석에 사용할 텍스트 생성
+    const codeDiff = files
+        .map(file => file.patch)
+        .filter(Boolean)
+        .join("\n\n");
+
+    if (!patches) {
+        return "변경된 코드에 분석할 내용이 없습니다.";
+    }
+
+    // Gemini API 엔드포인트 (환경변수 GEMINI_API_URL에 설정되어 있거나 기본값 사용)
+    const geminiApiUrl = process.env.GEMINI_API_URL;
+    const prompt =
+    `
+        You are a senior developer. Please review the following code and provide your feedback in Korean.
+        Use Markdown formatting.
+        Be concise and to the point.
+        Use emojis if helpful.
+        Include code examples if possible.
+
+        Here is the code:
+        ${codeDiff}
+    `
+
+    // Gemini API 호출 (Node.js v20 이상에서는 global fetch 사용 가능)
+    const response = await fetch(geminiApiUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.GEMINI_API_KEY}` // GEMINI_API_KEY 환경변수 설정 필요
+        },
+        body: JSON.stringify({ text: prompt })
+    });
+
+    if (!response.ok) {
+        throw new Error(`Gemini API 에러: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    // Gemini API 응답에서 분석 결과를 data.analysis 필드로 반환한다고 가정합니다.
+    return data.analysis;
+}
