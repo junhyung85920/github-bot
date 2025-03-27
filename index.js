@@ -107,7 +107,11 @@ async function analyzeWithGemini(files) {
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ text: prompt })
+        body: JSON.stringify({
+            contents: [{
+              parts: [{ text: prompt }]
+            }]
+          })
     });
 
     if (!response.ok) {
