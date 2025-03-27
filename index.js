@@ -50,8 +50,8 @@ async function analyzeAndComment(pr) {
 
   // PR에 코멘트 달기
   await octokit.issues.createComment({
-    owner,
-    repo,
+    owner : pr.owner.login,
+    repo : pr.base.repo.name,
     issue_number: pr.number,
     body: analysisComment,
   });
