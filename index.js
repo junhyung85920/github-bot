@@ -35,8 +35,6 @@ app.post('/webhook', async (req, res) => {
 
 // PR 변경사항 분석 및 코멘트 달기 함수
 async function analyzeAndComment(pr) {
-  const owner = junhyung85920;
-  const repo = Dynamic_MoE;
 
   // 변경된 파일 목록 가져오기
   const { data: files } = await octokit.pulls.listFiles({
