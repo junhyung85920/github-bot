@@ -39,14 +39,14 @@ async function analyzeAndComment(pr) {
     console.log(pr.base.repo.owner.login);
     console.log(pr.base.repo.name);
     console.log(pr.number);
-    
+
     // 변경된 파일 목록 가져오기
     const { data: files } = await octokit.pulls.listFiles({
         owner: pr.base.repo.owner.login,
         repo : pr.base.repo.name,
         pull_number : pr.number
     });
-    console.log(`PR #${pr.number}의 변경된 파일 목록:`, files);
+    console.log(`PR #${pr.number}의 변경된 파일 목록:`, files.name);
     // 간단한 분석 예시: 변경된 파일 개수
     const analysisComment = `이번 PR에서는 총 ${files.length}개의 파일이 변경되었습니다.`;
 
@@ -58,7 +58,7 @@ async function analyzeAndComment(pr) {
         body: analysisComment,
     });
 
-    console.log(`PR #${pull_number}에 코멘트를 작성했습니다.`);
+    console.log(`PR #${pr.number}에 코멘트를 작성했습니다.`);
 }
 
 // 서버 시작
