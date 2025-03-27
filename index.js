@@ -88,7 +88,7 @@ async function analyzeWithGemini(files) {
     }
 
     // Gemini API 엔드포인트 (환경변수 GEMINI_API_URL에 설정되어 있거나 기본값 사용)
-    const geminiApiUrl = process.env.GEMINI_URL + process.env.GEMINI_KEY;
+    const geminiApiUrl = process.env.GEMINI_URL;
     const prompt =
     `
         You are a senior developer. Please review the following code and provide your feedback in Korean.
@@ -106,6 +106,7 @@ async function analyzeWithGemini(files) {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.GEMINI_KEY}` // GEMINI_API_KEY 환경변수 설정 필요
         },
         body: JSON.stringify({ text: prompt })
     });
