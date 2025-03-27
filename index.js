@@ -118,6 +118,8 @@ async function analyzeWithGemini(files) {
         throw new Error(`Gemini API 에러: ${response.statusText}`);
     }
 
+    console.log('response:', response);
+
     const data = await response.json();
     // Gemini API 응답에서 분석 결과를 data.analysis 필드로 반환한다고 가정합니다.
     return data.analysis;
