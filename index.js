@@ -40,8 +40,8 @@ async function analyzeAndComment(pr) {
 
   // 변경된 파일 목록 가져오기
   const { data: files } = await octokit.pulls.listFiles({
-    owner,
-    repo,
+    owner : pr.owner.login,
+    repo : pr.base.repo.name,
     pull_number : pr.number
   });
   console.log(`PR #${pr.number}의 변경된 파일 목록:`, files);
