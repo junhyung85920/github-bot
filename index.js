@@ -47,7 +47,7 @@ async function analyzeAndComment(pr) {
         pull_number: pr.number,
     });
 
-    console.log('변경된 파일 목록:', files);
+    // console.log('변경된 파일 목록:', files);
 
 
 
@@ -83,15 +83,15 @@ app.listen(port, () => {
 async function analyzeWithGemini(files) {
     // 각 파일의 patch(변경된 diff) 정보를 결합하여 분석에 사용할 텍스트 생성
     const codeDiff = files
+        .filter(file => file.patch)
         .map(file => file.patch)
-        .filter(Boolean)
         .join("\n\n");
 
     if (!codeDiff) {
         return "변경된 코드에 분석할 내용이 없습니다.";
     }
 
-    console.log('codeDiff:', codeDiff.json);
+    console.log('codeDiff:', codeDiff);
 
     // Gemini API 엔드포인트 (환경변수 GEMINI_API_URL에 설정되어 있거나 기본값 사용)
     const geminiApiUrl = process.env.GEMINI_URL + process.env.GEMINI_KEY;
