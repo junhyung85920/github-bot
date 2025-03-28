@@ -56,13 +56,11 @@ async function analyzeAndComment(pr) {
         pull_number: pr.number,
     });
 
-    const blobContentPromises = changedFiles.data.map(async (file) => {
-        const { data: blob } = await octokit.rest.git.getBlob({
+    const blobContentPromises = changedFiles.data.map(async file => await octokit.rest.git.getBlob({
             owner: pr.base.repo.owner.login,
             repo : pr.base.repo.name,
             file_sha: file.sha,
-        }).then(blob => blob.data.content);
-    });
+        }).then(blob => blob.data.content));
     const blobContents = await Promise.all(blobContentPromises);
     // console.log('Blob Contents:', blobContents);
 
@@ -113,7 +111,6 @@ export const generateReviewByGemini = async (blobContents) => {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     var reviews = [];
 
-    console.log(blobContents);
 
     for (const content of blobContents) {
         const prompt =
