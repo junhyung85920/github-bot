@@ -41,20 +41,38 @@ async function analyzeAndComment(pr) {
     console.log(pr.number);
 
     // 변경된 파일 목록 가져오기
-    const { data: files } = await octokit.pulls.listFiles({
+    // const { data: files } = await octokit.pulls.listFiles({
+    //     owner: pr.base.repo.owner.login,
+    //     repo : pr.base.repo.name,
+    //     pull_number: pr.number,
+    // });
+
+    // console.log('변경된 파일 목록:', files);
+
+    const changedFiles = await octokit.rest.pulls.listFiles({
         owner: pr.base.repo.owner.login,
         repo : pr.base.repo.name,
         pull_number: pr.number,
     });
 
-    // console.log('변경된 파일 목록:', files);
+    const blobContentPromises = changedFiles.data.map(async (file) => {
+        const { data: blob } = await octokit.rest.git.getBlob({
+            owner: pr.base.repo.owner.login,
+            repo : pr.base.repo.name,
+            file_sha: file.sha,
+        });
 
+        const content = Buffer.from(blob.content, 'base64').toString('utf-8');
+        return content;
+    });
+    const blobContents = await Promise.all(blobContentPromises);
+    console.log('Blob Contents:', blobContents);
 
 
     // Gemini API를 통해 코드 분석 수행
     let geminiAnalysis;
     try {
-        geminiAnalysis = await analyzeWithGemini(files);
+        geminiAnalysis = await analyzeWithGemini(blobContents);
         console.log('Gemini 분석 결과:', geminiAnalysis);
     } catch (err) {
         console.error('Gemini 분석 에러:', err);
@@ -80,53 +98,30 @@ app.listen(port, () => {
 });
 
 // Gemini API를 호출하여 코드 분석을 수행하는 함수
-async function analyzeWithGemini(files) {
-    // 각 파일의 patch(변경된 diff) 정보를 결합하여 분석에 사용할 텍스트 생성
-    const codeDiff = files
-        .filter(file => file.patch)
-        .map(file => file.patch)
-        .join("\n\n");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-    if (!codeDiff) {
-        return "변경된 코드에 분석할 내용이 없습니다.";
+export const generateReviewByGemini = async (blobContents) => {
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    var reviews = [];
+
+    for (const content of blobContents) {
+        const prompt =
+        `
+            You are a senior developer. Please review the following code and provide your feedback in Korean.
+            Use Markdown formatting.
+            Be concise and to the point.
+            Use emojis if helpful.
+            Include code examples if possible.
+
+            Here is the code:
+            ${content}
+        `
+        const result = await model.generateContent(prompt);
+        console.log(result.response.text());
+        reviews.push(result.response.text());
     }
 
-    console.log('codeDiff:', codeDiff);
-
-    // Gemini API 엔드포인트 (환경변수 GEMINI_API_URL에 설정되어 있거나 기본값 사용)
-    const geminiApiUrl = process.env.GEMINI_URL + process.env.GEMINI_KEY;
-    const prompt =
-    `
-        You are a senior developer. Please review the following code and provide your feedback in Korean.
-        Use Markdown formatting.
-        Be concise and to the point.
-        Use emojis if helpful.
-        Include code examples if possible.
-
-        Here is the code:
-        ${codeDiff}
-    `
-
-    // Gemini API 호출 (Node.js v20 이상에서는 global fetch 사용 가능)
-    const response = await fetch(geminiApiUrl, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            contents: [{
-              parts: [{ text: prompt }]
-            }]
-          })
-    });
-
-    if (!response.ok) {
-        throw new Error(`Gemini API 에러: ${response.statusText}`);
-    }
-
-    console.log('response:', response.text);
-
-    const data = await response.json();
-    // Gemini API 응답에서 분석 결과를 data.analysis 필드로 반환한다고 가정합니다.
-    return data.analysis;
+    
+    return reviews;
 }
