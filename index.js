@@ -41,16 +41,26 @@ async function analyzeAndComment(pr) {
     console.log(pr.number);
 
     // 변경된 파일 목록 가져오기
-    const { data: files } = await octokit.pulls.listFiles({
+    const changedFiles = await octokit.pulls.listFiles({
         owner: pr.base.repo.owner.login,
         repo : pr.base.repo.name,
         pull_number : pr.number
     });
 
+    const blobContentPromises = changedFiles.data.map(async file =>  await octokit.rest.git.getBlob({
+        owner,
+        repo,
+        file_sha: file.sha,
+        }).then(blob => blob.data.content));
+
+    const blobContents = await Promise.all(blobContentPromises);
+
+
+
     // Gemini API를 통해 코드 분석 수행
     let geminiAnalysis;
     try {
-        geminiAnalysis = await analyzeWithGemini(files);
+        geminiAnalysis = await analyzeWithGemini(blobcontents);
         console.log('Gemini 분석 결과:', geminiAnalysis);
     } catch (err) {
         console.error('Gemini 분석 에러:', err);
