@@ -121,7 +121,8 @@ export const generateReviewByGemini = async (blobContents) => {
             Use Markdown formatting.
             Be concise and to the point.
             Use emojis if helpful.
-            Include code examples if possible.
+            Explain the code in detail.
+            Provide suggestions for improvement.
 
             Here is the code:
             ${content}
