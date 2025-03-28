@@ -2,6 +2,7 @@
 import express from 'express';
 import { Octokit } from '@octokit/rest';
 import dotenv from 'dotenv';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 dotenv.config();
 const app = express();
@@ -98,7 +99,6 @@ app.listen(port, () => {
 });
 
 // Gemini API를 호출하여 코드 분석을 수행하는 함수
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 export const generateReviewByGemini = async (blobContents) => {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
