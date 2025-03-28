@@ -47,6 +47,8 @@ async function analyzeAndComment(pr) {
         pull_number: pr.number,
     });
 
+    console.log('변경된 파일 목록:', files.json);
+
 
 
     // Gemini API를 통해 코드 분석 수행
