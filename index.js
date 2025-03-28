@@ -87,7 +87,7 @@ async function analyzeAndComment(pr) {
     //     body: analysisComment,
     // });
 
-    const reviews = await generateReviewByGemini(blobContents);
+    const reviews = await generateReviewByGemini(decodedBlobContents);
     console.log('Gemini 분석 결과:', reviews);
     const analysisComment = `## 코드 분석 결과\n\n${reviews}`;
     // PR에 코멘트 달기
@@ -124,6 +124,7 @@ export const generateReviewByGemini = async (blobContents) => {
             Explain the code in detail.
             Provide suggestions for improvement.
 
+            codes start with '-' mean deletion, codes start with '+' mean addition.
             Here is the code:
             ${content}
         `
