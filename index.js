@@ -97,7 +97,6 @@ async function analyzeAndComment(pr) {
         issue_number: pr.number,
         body: analysisComment,
     });
-    console.log('PR에 코멘트 작성 완료:', analysisComment);
 
     console.log(`PR #${pr.number}에 코멘트를 작성했습니다.`);
 }
@@ -113,6 +112,8 @@ export const generateReviewByGemini = async (blobContents) => {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     var reviews = [];
+
+    console.log(blobContents);
 
     for (const content of blobContents) {
         const prompt =
