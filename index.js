@@ -61,27 +61,35 @@ async function analyzeAndComment(pr) {
             owner: pr.base.repo.owner.login,
             repo : pr.base.repo.name,
             file_sha: file.sha,
-        });
-
-        const content = Buffer.from(blob.content, 'base64').toString('utf-8');
-        return content;
+        }).then(blob => blob.data.content);
     });
     const blobContents = await Promise.all(blobContentPromises);
-    console.log('Blob Contents:', blobContents);
+    // console.log('Blob Contents:', blobContents);
 
 
-    // Gemini API를 통해 코드 분석 수행
-    let geminiAnalysis;
-    try {
-        geminiAnalysis = await analyzeWithGemini(blobContents);
-        console.log('Gemini 분석 결과:', geminiAnalysis);
-    } catch (err) {
-        console.error('Gemini 분석 에러:', err);
-        geminiAnalysis = "Gemini 분석에 실패하였습니다.";
-    }
+    // // Gemini API를 통해 코드 분석 수행
+    // let geminiAnalysis;
+    // try {
+    //     geminiAnalysis = await analyzeWithGemini(blobContents);
+    //     console.log('Gemini 분석 결과:', geminiAnalysis);
+    // } catch (err) {
+    //     console.error('Gemini 분석 에러:', err);
+    //     geminiAnalysis = "Gemini 분석에 실패하였습니다.";
+    // }
 
-    const analysisComment = `## 코드 분석 결과\n\n${geminiAnalysis}`;
+    // const analysisComment = `## 코드 분석 결과\n\n${geminiAnalysis}`;
 
+    // // PR에 코멘트 달기
+    // await octokit.issues.createComment({
+    //     owner: pr.base.repo.owner.login,
+    //     repo : pr.base.repo.name,
+    //     issue_number: pr.number,
+    //     body: analysisComment,
+    // });
+
+    const reviews = await generateReviewByGemini(blobContents);
+    console.log('Gemini 분석 결과:', reviews);
+    const analysisComment = `## 코드 분석 결과\n\n${reviews}`;
     // PR에 코멘트 달기
     await octokit.issues.createComment({
         owner: pr.base.repo.owner.login,
@@ -89,6 +97,7 @@ async function analyzeAndComment(pr) {
         issue_number: pr.number,
         body: analysisComment,
     });
+    console.log('PR에 코멘트 작성 완료:', analysisComment);
 
     console.log(`PR #${pr.number}에 코멘트를 작성했습니다.`);
 }
