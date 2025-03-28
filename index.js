@@ -21,14 +21,17 @@ app.post('/webhook', async (req, res) => {
     const event = req.headers['x-github-event'];
     console.log('이벤트 감지:', event);
     if (event === 'pull_request') {
-        const pr = req.body.pull_request;
-        console.log('Pull Request 이벤트 감지:', pr.number);
-        
-        // 분석 및 코멘트 작성 함수 호출
-        try {
-        await analyzeAndComment(pr);
-        } catch (error) {
-        console.error('분석 중 오류 발생:', error);
+        // event가 pull_requeset open인지 확인
+        if (req.body.action == 'opened') {
+            const pr = req.body.pull_request;
+            console.log('Pull Request 이벤트 감지:', pr.number);
+            
+            // 분석 및 코멘트 작성 함수 호출
+            try {
+            await analyzeAndComment(pr);
+            } catch (error) {
+            console.error('분석 중 오류 발생:', error);
+            }
         }
     }
     res.sendStatus(200);
@@ -121,8 +124,9 @@ export const generateReviewByGemini = async (blobContents) => {
             Use Markdown formatting.
             Be concise and to the point.
             Use emojis if helpful.
-            Explain the code in detail.
-            Provide suggestions for improvement.
+            Analyze the changes of codes and explain the changes.
+            The code is a diff format.
+            The codes start with '+' mean addition, codes start with '-' mean deletion.
 
             codes start with '-' mean deletion, codes start with '+' mean addition.
             Here is the code:
