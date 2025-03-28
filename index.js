@@ -48,8 +48,8 @@ async function analyzeAndComment(pr) {
     });
 
     const blobContentPromises = changedFiles.data.map(async file =>  await octokit.rest.git.getBlob({
-        owner,
-        repo,
+        owner: pr.base.repo.owner.login,
+        repo : pr.base.repo.name,
         file_sha: file.sha,
         }).then(blob => blob.data.content));
 
