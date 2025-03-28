@@ -62,6 +62,8 @@ async function analyzeAndComment(pr) {
             file_sha: file.sha,
         }).then(blob => blob.data.content));
     const blobContents = await Promise.all(blobContentPromises);
+    // decode base64 content
+    const decodedBlobContents = blobContents.map(content => Buffer.from(content, 'base64').toString('utf-8'));
     // console.log('Blob Contents:', blobContents);
 
 
