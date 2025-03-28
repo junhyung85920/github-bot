@@ -47,7 +47,7 @@ async function analyzeAndComment(pr) {
         pull_number: pr.number,
     });
 
-    console.log('변경된 파일 목록:', files.json);
+    console.log('변경된 파일 목록:', files);
 
 
 
