@@ -41,26 +41,18 @@ async function analyzeAndComment(pr) {
     console.log(pr.number);
 
     // 변경된 파일 목록 가져오기
-    const changedFiles = await octokit.pulls.listFiles({
+    const { data: files } = await octokit.pulls.listFiles({
         owner: pr.base.repo.owner.login,
         repo : pr.base.repo.name,
-        pull_number : pr.number
+        pull_number: pr.number,
     });
-
-    const blobContentPromises = changedFiles.data.map(async file =>  await octokit.rest.git.getBlob({
-        owner: pr.base.repo.owner.login,
-        repo : pr.base.repo.name,
-        file_sha: file.sha,
-        }).then(blob => blob.data.content));
-
-    const blobContents = await Promise.all(blobContentPromises);
 
 
 
     // Gemini API를 통해 코드 분석 수행
     let geminiAnalysis;
     try {
-        geminiAnalysis = await analyzeWithGemini(blobcontents);
+        geminiAnalysis = await analyzeWithGemini(files);
         console.log('Gemini 분석 결과:', geminiAnalysis);
     } catch (err) {
         console.error('Gemini 분석 에러:', err);
@@ -96,6 +88,8 @@ async function analyzeWithGemini(files) {
     if (!codeDiff) {
         return "변경된 코드에 분석할 내용이 없습니다.";
     }
+
+    console.log('codeDiff:', codeDiff.json);
 
     // Gemini API 엔드포인트 (환경변수 GEMINI_API_URL에 설정되어 있거나 기본값 사용)
     const geminiApiUrl = process.env.GEMINI_URL + process.env.GEMINI_KEY;
